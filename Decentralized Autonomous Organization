@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract SimpleDAO{
+    struct Proposal{
+        string description;
+        address payable recipient;
+        uint amount;
+        bool executed;
+        uint voteCount;
+    }
+
+Proposal [] public proposals;
+mapping (address=>bool) public members;
+mapping (uint =>mapping (address=>bool)) public voted;
+modifier OnlyMember(){
+    require(members[msg.sender],"Not a member");
+    _;
+}
+constructor(){
+    members[msg.sender]=true;
+
+}
+function addMember(address _member) public OnlyMember{
+    members[_member]=true;
+}
+
+function createproposal(string memory _description, address payable _recipient, uint _amount) public payable OnlyMember{
+    require(msg.value>_amount,"Incorrect Ether value");
+    proposals.push(Proposal({
+        description: _description,
+        recipient: _recipient,
+        amount: _amount,
+        executed: false,
+        voteCount:0
+    }));
+}
+
+function vote (uint _proposalIndex) public OnlyMember {
+    require(!voted[_proposalIndex][msg.sender],"Already voted");
+    require(_proposalIndex < proposals.length, "Invalid proposal");
+    Proposal storage proposal = proposals[_proposalIndex];
+    proposal.voteCount +=1;
+    voted[_proposalIndex][msg.sender]=true;
+}
+function executeproposal(uint _proposalIndex) public OnlyMember{
+    Proposal storage proposal = proposals[_proposalIndex];
+    require(!proposal.executed,"Proposal already executed");
+    require(proposal.voteCount>(countMembers()/2),"Not long enough votes");
+    proposal.recipient.transfer(proposal.amount);
+    proposal.executed = true;
+}
+    function countMembers() internal view returns (uint){
+        uint memberCount=0;
+        for (uint i=0;i<proposals.length;i++){
+            if(members[address(uint160(i))]){
+                memberCount++;
+            }
+        }
+        return memberCount;
+    }
+    receive() external payable{}
+}
