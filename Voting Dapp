@@ -1,0 +1,30 @@
+//SPDX-License-Identifier:MIT
+pragma solidity ^0.8.0;
+
+contract VotingSystem {
+    uint id;
+    string name;
+    uint voteCount;
+
+    mapping(uint=> Candidate) public candidates;
+    mapping(address=>bool) public voter;
+    uint public candidateCount = 0;
+    uint public startTime;
+    uint endTime;
+
+    event VotedEvent(uint indexed _candidateId);
+    constructor(uint _durationInMinutes){
+        startTime = block.timestamp;
+        endTime = startTime + (_durationInMinutes * 1 minutes);
+        addCandidate("Bob");
+        addCandidate("Alice");
+    }
+    function addCandidate(string memory _name) private {
+        candidateCount++;
+        candidates[candidatesCount] = Candidate(CandidatesCount, _name,0)
+    }
+
+    function vote(uint _candidateid) public{
+        require(block.timestamp >= startTime && block.timestamp <= endTime, "Voting is not allowed at this time");
+    }
+}
